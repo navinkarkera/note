@@ -1,4 +1,5 @@
-use dialoguer::Editor;
+use colored::*;
+use dialoguer::{Confirmation, Editor};
 use std::env;
 use std::error::Error;
 use std::fs::{read_to_string, File};
@@ -19,6 +20,7 @@ struct Cli {
 enum Command {
     List { number: Option<usize> },
     Search { text: String },
+    Clear,
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
@@ -45,6 +47,18 @@ fn run() -> Result<(), Box<dyn Error>> {
                     println!("{}", list_notes(&notes, notes.len()));
                 } else {
                     println!("No notes found!");
+                }
+            }
+            Command::Clear => {
+                if Confirmation::new()
+                    .with_text("Do you want clear all notes?")
+                    .default(false)
+                    .interact()?
+                {
+                    clear_notes();
+                    println!("Cleared!!")
+                } else {
+                    println!("Abort!");
                 }
             }
         },
@@ -90,16 +104,16 @@ fn read_note_list() -> Result<Vec<data::Note>, std::io::Error> {
 }
 
 fn list_notes(note_list: &Vec<data::Note>, num: usize) -> String {
-    let number = if note_list.len() > num {
-        num
-    } else {
-        note_list.len()
-    };
-    note_list[..number]
+    note_list
         .iter()
+        .rev()
+        .take(num)
         .map(|n| n.to_string())
-        .collect::<Vec<String>>()
-        .join("\n===================================\n\n")
+        .collect::<Vec<_>>()
+        .join(&format!(
+            "\n{}\n\n",
+            "===================================".green()
+        ))
 }
 
 fn write_notes(note_list: Vec<data::Note>) {
@@ -108,6 +122,10 @@ fn write_notes(note_list: Vec<data::Note>) {
         &note_list,
     )
     .expect("Could not write to file");
+}
+
+fn clear_notes() {
+    write_notes(Vec::new());
 }
 
 fn main() {

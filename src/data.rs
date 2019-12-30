@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use colored::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
@@ -25,9 +26,10 @@ impl fmt::Display for Note {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{}\n\nCreated at: {}",
-            self.note,
-            self.datetime.format("%v %r")
+            "{}\n\n{} {}",
+            self.note.cyan(),
+            "Created at:".green(),
+            self.datetime.format("%v %r").to_string().magenta()
         )
     }
 }
