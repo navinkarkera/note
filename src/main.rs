@@ -18,9 +18,14 @@ struct Cli {
 
 #[derive(Debug, StructOpt)]
 enum Command {
+    #[structopt(help = "List n last notes, default n = 5")]
     List { number: Option<usize> },
+    #[structopt(help = "Search notes")]
     Search { text: String },
+    #[structopt(help = "Clear all notes")]
     Clear,
+    #[structopt(help = "Set local notes for this folder")]
+    Local,
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
@@ -60,6 +65,9 @@ fn run() -> Result<(), Box<dyn Error>> {
                 } else {
                     println!("Abort!");
                 }
+            }
+            Command::Local => {
+                set_local();
             }
         },
         None => {
@@ -126,6 +134,19 @@ fn write_notes(note_list: Vec<data::Note>) {
 
 fn clear_notes() {
     write_notes(Vec::new());
+}
+
+fn set_local() {
+    if !PathBuf::from(".notes.json").exists() {
+        serde_json::to_writer(
+            &File::create(".notes.json").expect("Could not create notes file"),
+            &Vec::<data::Note>::new(),
+        )
+        .expect("Could not write to file");
+        println!("Created a local notes file");
+    } else {
+        println!("Local notes file already exists!")
+    }
 }
 
 fn main() {
