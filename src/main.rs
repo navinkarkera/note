@@ -71,7 +71,15 @@ fn run() -> Result<(), Box<dyn Error>> {
             }
         },
         None => {
-            if let Some(note_text) = Editor::new().edit("").expect("Please set a default editor") {
+            let mut editor = &mut Editor::new();
+            if let Ok(executable_path) = env::var("NOTES_EDITOR") {
+                editor = editor.executable(executable_path)
+            }
+            if let Some(note_text) = editor
+                .require_save(true)
+                .edit("")
+                .expect("Please set a default editor")
+            {
                 let note = data::Note::create(note_text);
                 println!("{}", note);
                 let mut note_list = read_note_list()?;
